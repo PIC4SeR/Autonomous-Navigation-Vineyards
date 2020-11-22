@@ -1,0 +1,5 @@
+<launch>
+
+	<node pkg="deep_vineyard" type="nav_onlyDepth_Up.py" name="depth_nav" output="screen"/>
+
+</launch>

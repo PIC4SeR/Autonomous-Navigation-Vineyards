@@ -1,0 +1,5 @@
+<launch>
+
+	<node pkg="deep_vineyard" type="nav_Both_Up.py" name="both_nav" output="screen"/>
+
+</launch>

@@ -1,0 +1,5 @@
+<launch>
+
+	<node pkg="jackal_commands" type="lower_control.py" name="jk_cmd" output="screen"/>
+
+</launch>

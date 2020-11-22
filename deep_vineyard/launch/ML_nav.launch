@@ -1,0 +1,5 @@
+<launch>
+
+	<node pkg="deep_vineyard" type="nav_only_ML_Up.py" name="ML_nav" output="screen"/>
+
+</launch>
