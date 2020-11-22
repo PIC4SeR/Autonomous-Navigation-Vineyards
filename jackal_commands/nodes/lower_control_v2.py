@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # license removed for brevity
 
-
 #VERSION 2
-#Added code for comunication purposes with the global motion planner 
+#added code to communicate with the global motion planner
 
 import rospy
 from jackal_commands.msg import tupla
@@ -79,11 +78,12 @@ class Writing():
 
 
     #lin_vel_command = float(max_Lin_Vel*delta*delta)/((w_depth/2)*(w_depth/2))WRONG FUNCTION!!
-
+    lin_vel_command = float(max_Lin_Vel*(1-((delta*delta)/((w_depth/2)*(w_depth/2)))))
+    
     #print("ang_vel_command",ang_vel_command)
     #return (((max_Ang_Vel-0.2)-abs(ang_vel_command)),ang_vel_command)
 
-    #return (lin_vel_command,ang_vel_command)  #true line
+    #return (lin_vel_command,ang_vel_command)   #true command
     return (0,ang_vel_command) #prova fatta al PIC
 
 
