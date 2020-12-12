@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-# license removed for brevity
+
 
 #VERSION 2
 #added code to communicate with the global motion planner
 
 import rospy
-from jackal_commands.msg import tupla
+from jackal_commands.msg import tupla #custom message type
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool 
 
@@ -14,8 +14,8 @@ import threading
 w_depth=320
 h_depth=240
 
-#max angular velocity:
-max_Ang_Vel=0.5   #ang and linear are different! check it out! check also the max values
+#max angular velocity values:
+max_Ang_Vel=0.5   
 max_Lin_Vel=0.6
 
 class Initialization():
@@ -26,7 +26,7 @@ class Initialization():
       global dc#data_controller 
       f=0
       dc=0
-      #rate = rospy.Rate(10) # 10hz
+
 
 
 class Reading(threading.Thread):
@@ -44,8 +44,6 @@ class Reading(threading.Thread):
     global f, dc
     f=data.flag
     dc=data.control
-    #print f, dc
-
 
 
 class Writing():
@@ -77,14 +75,12 @@ class Writing():
       ang_vel_command = float(max_Ang_Vel*delta*delta)/((w_depth/2)*(w_depth/2))
 
 
-    #lin_vel_command = float(max_Lin_Vel*delta*delta)/((w_depth/2)*(w_depth/2))WRONG FUNCTION!!
-    lin_vel_command = float(max_Lin_Vel*(1-((delta*delta)/((w_depth/2)*(w_depth/2)))))
-    
-    #print("ang_vel_command",ang_vel_command)
-    #return (((max_Ang_Vel-0.2)-abs(ang_vel_command)),ang_vel_command)
 
-    #return (lin_vel_command,ang_vel_command)   #true command
-    return (0,ang_vel_command) #prova fatta al PIC
+    lin_vel_command = float(max_Lin_Vel*(1-((delta*delta)/((w_depth/2)*(w_depth/2)))))
+
+
+    return (lin_vel_command,ang_vel_command)  
+
 
 
 class Comunication(self):
@@ -112,9 +108,9 @@ if __name__ == '__main__':
   while not rospy.is_shutdown():
 
     while CC.r_n_flag: #row_navigation flag. 1 inside the row, 0 changing row
-           #f=1
+
       try:
-        if not f:  #depth is sending msg
+        if not f:  #CV_ALGO is sending msg
           (cmd_lin2, cmd_ang2) = OUT.controllerDepth(dc)  # controller based on the center of the longitudinal (x-axis)
           OUT.Move(cmd_lin2, cmd_ang2)  #give the cmd
         else:  #ML is sending msg
