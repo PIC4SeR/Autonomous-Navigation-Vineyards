@@ -127,9 +127,9 @@ class INPUT(threading.Thread):
 
 	def CameraColor(self, data):
 		global imgRGB
-		#imgRGB = self.bridge.imgmsg_to_cv2(data, "bgr8")
-		imgRGB = cv2.resize(self.bridge.imgmsg_to_cv2(data, "bgr8"), (224,224)) #fare il resize
-		
+		#resize img to network input shape
+		imgRGB = cv2.resize(self.bridge.imgmsg_to_cv2(data, "bgr8"), (224,224)) 
+
 #load the desired ML model
 def deepVineyardModel(pathModel):
 	model = load_model(pathModel)
@@ -153,36 +153,18 @@ if __name__ == '__main__':
 
 	OUT = OUTPUT()
 
-
-	#fourcc = cv2.VideoWriter_fourcc(*'XVID')
-	#out = cv2.VideoWriter('output60.avi',fourcc,60.0,(640,480))
 	while not rospy.is_shutdown():
-		#im = IMM.fromarray(imgRGB)
-		#im.save('vitto/prova.jpg')
-		try:
-		   #imgRGB = np.array(imgRGB, dtype=np.uint8)
 
-		   #gigio=imgRGB.copy() #just to see the img at the end
-		   #scale the img
+		try:
+		  
 		   imgRGB=(imgRGB/255.)
 		   y_pred = model.predict(imgRGB[None,...]) #adding one dimension
 		   ML_predict=np.argmax(y_pred, axis=-1)[0] #reading model prediction
-		   #OUT.Communication(1,ML_predict)   #SENDING COMMANDS
-		   #print(y_pred)
-		   print(classes[ML_predict])
-		   #cv2.imshow('ROS API Controller', intermedio)
-		   #out.write(imgRGB)
 
-		   #constant control=  linear 0.8 /  angular 0.3 !riguardare
-		   #if ML_predict == 0:     #right
-		   #		OUT.Move(0.2,-0.3)
-		   #elif ML_predict == 1:   #center
-		   #		OUT.Move(0.8, 0) 
-		   #elif ML_predict == 2:    #left
-		   #		OUT.Move(0.2,0.3)
-		   #else:
-		   #		OUT.Move(0,0)
-		   #		print("Error ML-controller")
+
+		   OUT.Communication(1,ML_predict)   #SENDING COMMANDS to jackal_controller
+
+
 
 
 		   cv2.imshow('ROS API color', imgRGB)

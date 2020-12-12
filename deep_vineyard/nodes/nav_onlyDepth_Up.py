@@ -20,18 +20,11 @@ import cv2
 import threading
 
 
-#threshold control x-axis #73/146/219 for equal thresholds, not used with parabolic control
-X1=73
-X2=146
-X3=219
 
 #working height and weight
 w_depth=320
 h_depth=240
 
-#max angular velocity:
-max_Ang_Vel=1    #ang and linear are different! check it out! check also the max values
-#ang_vel_step= max_Ang_Vel*1000/5  #5 steps on the vertical axis
 
 
 
@@ -140,39 +133,19 @@ class INPUT(threading.Thread):
 
 	def Camera(self, data):
 		global image
-		#image = self.bridge.imgmsg_to_cv2(data, "16UC1")
-		image = cv2.resize(self.bridge.imgmsg_to_cv2(data, "16UC1"), (w_depth,h_depth)) #resizing image to reduce complexity
+		image = cv2.resize(self.bridge.imgmsg_to_cv2(data, "16UC1"), (w_depth,h_depth)) #resizing image to reduce complexity and computational load
 
 		
 
 
-#to find the window where all the points are beyond a certain depth
+#to find the window where all the points are beyond a certain depth. Basically just thresholding the frame
 def findWindow(frame):
 	threshold=0.25
 	r,col=frame.shape
-	
-	#for i in range(10):
-	#	for j in range(col):
-	#		frame[i,j]=0
-	
-	#NUMPY!
-	for i in range(0,r): 
-		for j in range(col):
-				if frame[i,j]> threshold: #era maggiore
-					frame[i,j]=1
-				else:
-					frame[i,j]=0
-					#print(lista.shape)
 
-
-	#for i in range(r-80,r):
-	#	for j in range(col):
-	#		frame[i,j]=0
+	frame=np.where(frame>threshold, 1.0, 0)
 	
 	return frame
-
-
-
 
 
 
@@ -199,38 +172,39 @@ if __name__ == '__main__':
 		   image = np.array(image, dtype=np.float32)   #img conversion
 		   
 		   cv2.normalize(image, image, 0, 1, cv2.NORM_MINMAX) #normalization 0 to 1
-		   intermedio=image.copy() #just to see the img
+		   img_view_=image.copy() #just for visualization purposes
 
 		   image=findWindow(image) #function to find the rectangle/window - the navigation goal
-		   imcastata=image.astype("uint8") #casting of the img to do the needed following ops
+		   img_cast=image.astype("uint8") #casting of the img to do the needed following ops
 		   
-		   __,contours,hierarchy = cv2.findContours(imcastata, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) #finding the contours
+		   __,contours,hierarchy = cv2.findContours(img_cast, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) #finding the contours
 		   area=np.zeros(len(contours)) #init the vectors
 
 		   for ind in range(len(contours)):     #for all the contours found, calculate the area
 			   cnt=contours[ind]
 			   area[ind] = cv2.contourArea(cnt)
 
-		   index_max_rect= np.argmax(area)
+		   index_max_rect= np.argmax(area)   #getting rid of the noise, just biggest area kept
 		   cnt2=contours[index_max_rect]
 		   if (area[index_max_rect]>areaThreshold):    #if area is greater than the threshold window/goal found     
 				xx,yy,ww,hh = cv2.boundingRect(cnt2)    #def a rect around the found area
-				cv2.rectangle(intermedio,(xx,yy),(xx+ww,yy+hh),(255,255,255),2)  #draw the rect
-				OUT.Communication(0,int(xx+(ww/2)-((w_depth/2)-1)))
-				#(cmd_lin2, cmd_ang2) = controllerDepth((xx+(ww/2)-((w_depth/2)-1)))  # controller based on the center of the longitudinal (x-axis)
-				#OUT.Move(cmd_lin2, cmd_ang2)  #give the cmd
-				print area[index_max_rect]
+				
+				cv2.rectangle(img_view_,(xx,yy),(xx+ww,yy+hh),(255,255,255),2)  #draw the rect
+				
+				OUT.Communication(0,int(xx+(ww/2)-((w_depth/2)-1)))  #sending command to the control module
+	
+
+
 
 
 		   
-		   cv2.imshow('depth View', intermedio)
+		   cv2.imshow('depth View', img_view_)
 
 			
 		  
 		except Exception as e:
 			print(e)
-			#cv2.imshow('ROS API Controller', np.zeros((300, 512, 3), np.uint8))
-			#cv2.imshow('intermedio', np.zeros((300, 512, 3), np.uint8))
+
 
 		
 		k = cv2.waitKey(1) & 0xFF
